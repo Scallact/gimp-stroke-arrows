@@ -1,8 +1,8 @@
-# Stroke Arrows - GIMP python plug-in
+# Stroke Arrows - GIMP 3.0 python plug-in
 
-This plug-in has a simple purpose: to stroke one or several paths with an arrowhead inserted at the end. The body path is shortened to ensure that the arrow tip ends up reasonably well aligned with the path's last point.
+Stroke one or several paths as arrows. The body/shaft path is shortened to ensure that the arrow tip ends up reasonably well aligned with the path's last point.
 
-A few styles are available for the arrowhead, and the body is a standard line stroke with configurable width.
+A few styles are available for the arrowhead and tail, and the body/shaft is a standard line stroke with configurable width.
 
 Usage:
 
@@ -19,15 +19,37 @@ Usage:
     * filled
     * empty
     * simple
-* Stroke width (px): self explanatory. For "empty" style arrowheads, the outline has always the same width as the body.
-* Arrowhead length (px): measured from the tip to the exterior point of the wings, projected alongside the axe. Apparent size can vary slightly depending on the chosen style
+* Wing length (px): Length of arrowhead wings in pixels. The actual wing size can vary slightly if the "Shape" parameter is negative.
 * Tip angle (°): makes the arrowhead more or less pointy.
-* Anchor offset: determines the shape at the back of the arrowhead. A positive offset creates a harpoon shaped arrowhead. An offset of 0 creates a flat end. A negative offset creates a diamond shaped arrowhead.
-* Draw arrowheads only: if checked, the body is not drawn
+* Shape: determines the shape at the back of the arrowhead. A positive offset creates a harpoon shaped arrowhead. An offset of 0 creates a flat end. A negative offset creates a diamond shaped arrowhead.
+* Stroke width (px): Width of the shaft and outlines strokes.
+* Tail type: see image below
+   * none
+   * bar
+   * bullet
+   * feather
+   * two-way arrow
+* Tail style: not applicable for "none" and "bar" types
+   * same as arrowhead
+   * filled
+   * empty
+   * simple
+* Tail width
+* Tail width unit : relative to the arrow width in %, or an absolute value in pixels.
 * Create new layer: unchecked - draw on the selected layer / checked: create a new layer with appropriate size.
-* Keep paths: keep the shortened body path and the arrowhead path, for the cases where more customisation is wanted.
+* Remove shaft, draw head: check to draw head only or head and tail only.
+* Remove shaft, draw tail: check to draw tail only or head and tail only.
+* Flip direction: reverse the direction of the selected paths.
+* Keep newly created paths: keep the paths used to draw the arrows.
 
-<img width="402" height="552" alt="StrokeArrow01" src="https://github.com/user-attachments/assets/ea2f35bc-48c7-4c39-86ec-363260e87ad7" />
+### Shape parameter:
+
+<img width="402" height="552" alt="StrokeArrow01_1" src="https://github.com/user-attachments/assets/34203033-f8a6-4048-9243-a2b274ea14d8" />
+
+### All possible pairings of arrowhead styles and tail types/styles:
+
+<img width="1322" height="752" alt="StrokeArrow03_inventory03" src="https://github.com/user-attachments/assets/16d86062-a8bc-4d02-ad8c-84648e8d2a4d" />
+
 
 ## Installation:
 
