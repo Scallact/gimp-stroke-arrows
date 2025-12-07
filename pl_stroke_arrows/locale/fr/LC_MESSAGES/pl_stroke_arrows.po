@@ -1,0 +1,186 @@
+# Stroke arrows GIMP 3 plugin.
+# Copyright (C) 2025 Pascal Lachat.
+# This file is distributed under the same license as the 'pl_stroke_arrows' package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2025-12-07 14:23+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: pl_stroke_arrows.py:173
+msgid "Stroke arrows ..."
+msgstr "Tracer des flèches ..."
+
+#: pl_stroke_arrows.py:178
+msgid "Stroke arrows from path"
+msgstr "Tracer des flèches selon un chemin"
+
+#: pl_stroke_arrows.py:179
+msgid "Stroke one or several arrows from user created paths"
+msgstr "Tracer une ou plusieurs flèches suivant un chemin existant"
+
+#: pl_stroke_arrows.py:186
+msgid "foreground color"
+msgstr "couleur de premier-plan"
+
+#: pl_stroke_arrows.py:187
+msgid "black"
+msgstr "noir"
+
+#: pl_stroke_arrows.py:188
+msgid "Color"
+msgstr "Couleur"
+
+#: pl_stroke_arrows.py:191 pl_stroke_arrows.py:218
+msgid "filled"
+msgstr "plein"
+
+#: pl_stroke_arrows.py:192 pl_stroke_arrows.py:219
+msgid "empty"
+msgstr "vide"
+
+#: pl_stroke_arrows.py:193 pl_stroke_arrows.py:220
+msgid "simple"
+msgstr "simple"
+
+#: pl_stroke_arrows.py:194
+msgid "Arrowhead style"
+msgstr "Style de pointe de flèche"
+
+#: pl_stroke_arrows.py:196
+msgid "Wing length (px)"
+msgstr "Longueur du côté (px)"
+
+#: pl_stroke_arrows.py:197
+msgid "Length of the wing (px)"
+msgstr "Longueur du côté (px)"
+
+#: pl_stroke_arrows.py:199 pl_stroke_arrows.py:200
+msgid "Tip angle (°)"
+msgstr "Angle de la pointe (°)"
+
+#: pl_stroke_arrows.py:202
+msgid "Shape (-◆ | ➤+)"
+msgstr "Forme (-◆ | ➤+)"
+
+#: pl_stroke_arrows.py:203
+msgid "positive: harpoon / negative: diamond"
+msgstr "positive: harpon / négative: losange"
+
+#: pl_stroke_arrows.py:205 pl_stroke_arrows.py:206
+msgid "Stroke width (px)"
+msgstr "Epaisseur de trait (px)"
+
+#: pl_stroke_arrows.py:209
+msgid "none"
+msgstr "aucun"
+
+#: pl_stroke_arrows.py:210
+msgid "bar"
+msgstr "barre"
+
+#: pl_stroke_arrows.py:211
+msgid "bullet"
+msgstr "puce"
+
+#: pl_stroke_arrows.py:212
+msgid "feather"
+msgstr "plume"
+
+#: pl_stroke_arrows.py:213
+msgid "two-way arrow"
+msgstr "pointe opposée"
+
+#: pl_stroke_arrows.py:214
+msgid "Tail type"
+msgstr "Type d'empennage"
+
+#: pl_stroke_arrows.py:217
+msgid "same as arrowhead"
+msgstr "style de la pointe"
+
+#: pl_stroke_arrows.py:221
+msgid "Tail style"
+msgstr "Style d'empennage"
+
+#: pl_stroke_arrows.py:223 pl_stroke_arrows.py:224
+msgid "Tail width"
+msgstr "Largeur d'empennage"
+
+#: pl_stroke_arrows.py:226
+msgid "Tail width unit relative (%)"
+msgstr "Unité de largeur d'empennage relative (%)"
+
+#: pl_stroke_arrows.py:227
+msgid "Tail width relative to arrowhead, otherwise value in pixels"
+msgstr "Largeur d'empennage relative à la pointe, sinon valeur en pixels"
+
+#: pl_stroke_arrows.py:228 pl_stroke_arrows.py:229
+msgid "Create new layer"
+msgstr "Créer un nouveau calque"
+
+#: pl_stroke_arrows.py:230
+msgid "Flip path direction"
+msgstr "Inverser le chemin"
+
+#: pl_stroke_arrows.py:231
+msgid "Flip the arrow direction"
+msgstr "Sens de la flèche inversé"
+
+#: pl_stroke_arrows.py:232
+msgid "Remove shaft, draw head"
+msgstr "Pointe sans la tige"
+
+#: pl_stroke_arrows.py:233
+msgid "Remove shaft, draw arrowhead"
+msgstr "Dessiner la pointe sans la tige"
+
+#: pl_stroke_arrows.py:234 pl_stroke_arrows.py:235
+msgid "Remove shaft, draw tail"
+msgstr "Empennage sans la tige"
+
+#: pl_stroke_arrows.py:236 pl_stroke_arrows.py:237
+msgid "Keep newly created paths"
+msgstr "Conserver les chemins créés"
+
+#: pl_stroke_arrows.py:375
+msgid "Arrow #1"
+msgstr "Flèche #1"
+
+#: pl_stroke_arrows.py:383
+msgid "Procedure '{}' only works with one drawable."
+msgstr "Un seul calque ou canal doit être sélectionné"
+
+#: pl_stroke_arrows.py:408
+msgid "Procedure '{}' needs at least one path"
+msgstr "La procédure '{}' nécessite au moins un chemin"
+
+#: pl_stroke_arrows.py:460
+msgid "Paths must have at least one stroke"
+msgstr "Les chemins doivent contenir au moins une ligne"
+
+#: pl_stroke_arrows.py:473
+msgid "The last point of this path is not connected"
+msgstr "Le dernier point du chemin n'est pas connecté"
+
+#: pl_stroke_arrows.py:612
+msgid "body path #1"
+msgstr "tige #1"
+
+#: pl_stroke_arrows.py:788 pl_stroke_arrows.py:814
+msgid "arrow head #1"
+msgstr "pointe #1"
+
+#: pl_stroke_arrows.py:848 pl_stroke_arrows.py:862 pl_stroke_arrows.py:932
+#: pl_stroke_arrows.py:949
+msgid "arrow tail #1"
+msgstr "empennage #1"
