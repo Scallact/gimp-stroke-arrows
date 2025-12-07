@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Description du script
+# Stroke arrows from one or more selected paths
 #
-# Original author : Pascal L.
-# Version 0.7 for GIMP 3.0
+# Original author : Pascal Lachat
+# Version 0.8 for GIMP 3.0
 
 # ------------------
 
@@ -76,7 +76,7 @@
 # - revrote case of splines too small to place the arrowhead and cut point.
 # - corrected error when layer mask or channel is selected.
 #
-#  0.7 :
+# 0.7 :
 # - restructured most the code to enable arrow tails
 # - added 5 types of arrow tails:
 #       none
@@ -98,11 +98,20 @@
 # - user dialog base size changed to wing length, better for large tip angles
 # - corrected harpoon function on simple arrows, and reduced limit to 5.0 (0.5 internal)
 # - corrected: undo didn't include selection mask saving
+#
+# 0.8 :
+# - enabled localization, added .mo file for french
+# - added basic color choice
+# - minor UI adjustments
+# - added paths right-click menu entry
+# - corrected dialog box registration
 
 #
 # To do
 # -----
 # - bug: in some cases undo still un-selects the active layer (create layer unchecked)
+# - visual issue with plain arrowheads and very large stroke
+# - correct bullet position according to the tangent at contact, and straight line for simple
 # - select drawn / not drawn for each element
 # - examine visual bug with very short path and reversed-arrow tail (use the whole path 
 #    instead of the already cut one?)
@@ -111,11 +120,12 @@
 # - numbered bullet option (user suggestion)  >> not for now, hard to fit any font 
 #    into a given diameter
 # - deal with edge cases : 
-#   - closed paths (? maybe)
+#   - closed paths
 #   - solve layer resizing when "draw arrowheads only" is checked (maybe?)
 # - structure code of main routine  >> better for now, still work to do
 # - find a way to smooth curve to tangent junction
 # - simpler, non interactive version? (arrowhead size determined by last anchor?)
+# - add vector layers output option for GIMP 3.2 
 
 
 #*************************************************************************************
@@ -137,6 +147,12 @@ import os
 import sys
 import math
 import time # for testing
+import gettext
+
+LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
+gettext.bindtextdomain("pl_stroke_arrows", LOCALE_DIR)
+gettext.textdomain("pl_stroke_arrows")
+_ = gettext.gettext
 
 
 #*************************************************************************************
@@ -154,68 +170,71 @@ class strokeArrows (Gimp.PlugIn):
 
         procedure.set_image_types("*")
 
-        procedure.set_menu_label("Stroke arrows ...")
+        procedure.set_menu_label(_("Stroke arrows ..."))
         procedure.set_icon_name(GimpUi.ICON_GEGL)
         procedure.add_menu_path('<Image>/Edit')
+        procedure.add_menu_path('<Paths>/Paths Menu')
 
-        procedure.set_documentation("Plug-in Mon Gabarit",
-                                    "Description",
+        procedure.set_documentation(_("Stroke arrows from path"),
+                                    _("Stroke one or several arrows from user created paths"),
                                     name)
         procedure.set_attribution("Pascal L.", "Pascal L.", "2025")
 
         # dialog box parameters
         # ---------------------
         choice = Gimp.Choice.new()
-        choice.add("filled", 0, "filled", "")
-        choice.add("empty",  1, "empty", "")
-        choice.add("simple", 2, "simple", "")
-        procedure.add_choice_argument("arrowStyle", "Arrowhead style", "Arrowhead style",
+        choice.add("foreground", 0, _("foreground color"), "")
+        choice.add("black", 1, _("black"), "")
+        procedure.add_choice_argument("arrowsColor", _("Color"), _("Color"),
+                                       choice, "foreground", GObject.ParamFlags.READWRITE)
+        choice = Gimp.Choice.new()
+        choice.add("filled", 0, _("filled"), "")
+        choice.add("empty",  1, _("empty"), "")
+        choice.add("simple", 2, _("simple"), "")
+        procedure.add_choice_argument("arrowStyle", _("Arrowhead style"), _("Arrowhead style"),
                                        choice, "filled", GObject.ParamFlags.READWRITE)
-        procedure.add_double_argument("wingLen", "Wing length (px)",
-                                    "Length of the wing (px)",
+        procedure.add_double_argument("wingLen", _("Wing length (px)"),
+                                    _("Length of the wing (px)"),
                                     2.0, 500.0, 40.0, GObject.ParamFlags.READWRITE)
-        procedure.add_double_argument("tipAngle", "Tip angle (°)",
-                                    "Tip angle (°)",
+        procedure.add_double_argument("tipAngle", _("Tip angle (°)"),
+                                    _("Tip angle (°)"),
                                     10.0, 120.0, 35.0, GObject.ParamFlags.READWRITE)
-        procedure.add_double_argument("harpoonFactor", "Shape (-◆ / ➤+)",
-                                    "positive: harpoon / negative: diamond",
-                                    -10.0, 5.0, 0.0, GObject.ParamFlags.READWRITE) # concavity? gutter? slenderness? anchor position? shape?
-        procedure.add_double_argument("strokeWidth", "Stroke width (px)",
-                                    "Stroke width (px)",
+        procedure.add_double_argument("harpoonFactor", _("Shape (-◆ | ➤+)"),
+                                    _("positive: harpoon / negative: diamond"),
+                                    -10.0, 5.0, 0.0, GObject.ParamFlags.READWRITE)
+        procedure.add_double_argument("strokeWidth", _("Stroke width (px)"),
+                                    _("Stroke width (px)"),
                                     0.0, 50.0, 4.0, GObject.ParamFlags.READWRITE)
         choice = Gimp.Choice.new()
-        choice.add("none", 0, "none", "")
-        choice.add("crossbar", 1, "bar", "") # (transversal) line/stop? stroke? cross-line? crossbar?
-        choice.add("bullet", 2, "bullet", "")
-        choice.add("feathered", 3, "feather", "")
-        choice.add("arrowhead",  4, "two-way arrow", "") # opposite? backward? reversed? two-way?
-        procedure.add_choice_argument("tailType", "Tail type", "Tail type",
+        choice.add("none", 0, _("none"), "")
+        choice.add("crossbar", 1, _("bar"), "") # (transversal) line/stop? stroke? cross-line? crossbar?
+        choice.add("bullet", 2, _("bullet"), "")
+        choice.add("feathered", 3, _("feather"), "")
+        choice.add("arrowhead",  4, _("two-way arrow"), "") # opposite? backward? reversed? two-way?
+        procedure.add_choice_argument("tailType", _("Tail type"), _("Tail type"),
                                        choice, "none", GObject.ParamFlags.READWRITE)
         choice = Gimp.Choice.new()
-        choice.add("default", 0, "same as arrowhead", "")
-        choice.add("filled", 1, "filled", "")
-        choice.add("empty", 2, "empty", "")
-        choice.add("simple",  3, "simple", "")
-        procedure.add_choice_argument("tailStyle", "Tail style", "Tail style",
+        choice.add("default", 0, _("same as arrowhead"), "")
+        choice.add("filled", 1, _("filled"), "")
+        choice.add("empty", 2, _("empty"), "")
+        choice.add("simple",  3, _("simple"), "")
+        procedure.add_choice_argument("tailStyle", _("Tail style"), _("Tail style"),
                                        choice, "default", GObject.ParamFlags.READWRITE)
-        procedure.add_double_argument("tailSize", "Tail width",
-                                    "Tail width (px)",
+        procedure.add_double_argument("tailSize", _("Tail width"),
+                                    _("Tail width"),
                                     2.0, 500.0, 80.0, GObject.ParamFlags.READWRITE)
-        choice = Gimp.Choice.new()
-        choice.add("relative", 0, "relative (%)", "")
-        choice.add("absolute", 1, "absolute (px)", "")
-        procedure.add_choice_argument("tailUnit", "Tail width unit", "Tail width unit",
-                                       choice, "relative", GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("createLayer", "Create new layer",
-                                    "Create new layer", True, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("arrowHeadOnly", "Remove shaft, draw head",
-                                    "Remove shaft, draw arrowhead", False, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("arrowTailOnly", "Remove shaft, draw tail",
-                                    "Remove shaft, draw tail", False, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("invertPath", "Flip direction",
-                                    "Flip direction", False, GObject.ParamFlags.READWRITE)
-        procedure.add_boolean_argument("keepPaths", "Keep newly created paths",
-                                    "Keep newly created paths", False, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("tailUnitRelative", _("Tail width unit relative (%)"),
+                                    _("Tail width relative to arrowhead, otherwise value in pixels"), True, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("createLayer", _("Create new layer"),
+                                    _("Create new layer"), True, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("invertPath", _("Flip path direction"),
+                                    _("Flip the arrow direction"), False, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("arrowHeadOnly", _("Remove shaft, draw head"),
+                                    _("Remove shaft, draw arrowhead"), False, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("arrowTailOnly", _("Remove shaft, draw tail"),
+                                    _("Remove shaft, draw tail"), False, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument("keepPaths", _("Keep newly created paths"),
+                                    _("Keep newly created paths"), False, GObject.ParamFlags.READWRITE)
 
         return procedure
 
@@ -233,7 +252,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     # ************
     
     if run_mode == Gimp.RunMode.INTERACTIVE:
-        GimpUi.init('python-fu-pl-gabarit') # ou nom du fichier
+        GimpUi.init('pl_stroke_arrows') # nom du fichier
 
         dialog = GimpUi.ProcedureDialog(procedure=procedure, config=config)
         dialog.fill(None)
@@ -246,15 +265,16 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     # parameters list for user dialog
     # -------------------------------
     
+    arrowsColor     = config.get_property("arrowsColor")
     arrowStyle      = config.get_property("arrowStyle")
     strokeWidth     = config.get_property("strokeWidth")
-    wingLen        = config.get_property("wingLen")
+    wingLen         = config.get_property("wingLen")
     tipAngle        = config.get_property("tipAngle")
     harpoonFactor   = config.get_property("harpoonFactor")
     tailType        = config.get_property("tailType")
     tailStyle       = config.get_property("tailStyle")
     tailSize        = config.get_property("tailSize")
-    tailUnit        = config.get_property("tailUnit")
+    tailUnitRelative = config.get_property("tailUnitRelative")
     createLayer     = config.get_property("createLayer")
     arrowHeadOnly   = config.get_property("arrowHeadOnly")
     arrowTailOnly   = config.get_property("arrowTailOnly")
@@ -263,6 +283,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
 
     # user dialog variables (for testing)
     # -----------------------------------
+    # arrowsColor     = "black"
     # arrowStyle      = "filled" # "filled", "empty", "simple"
     # strokeWidth     =  4.0
     # wingLen         = 40.0
@@ -271,11 +292,11 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     # tailType        = "none"
     # tailStyle       = "default"
     # tailSize        = 20.0
-    # tail unit       = "relative"
+    # tailUnitRelative = True
     # createLayer     = True
+    # invertPath      = False
     # arrowHeadOnly   = False
     # arrowTailOnly   = False
-    # invertPath      = False
     # keepPaths       = False
     
     # Undo and context
@@ -285,7 +306,9 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     Gimp.context_push()
     
     # Gimp.context_set_defaults()
-    # Gimp.context_set_foreground(fgColor)
+    
+    if arrowsColor == "black" :
+        Gimp.context_set_foreground(Gimp.color_parse_name("black"))
     
     Gimp.context_set_antialias(True)
     Gimp.context_set_feather(False)
@@ -327,7 +350,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     # arrowLength can change, arrowLen stays constant from there
     arrowLength = arrowLen
     
-    if tailUnit == "relative" :
+    if tailUnitRelative == True :
         refSize = 2.0 * math.tan(0.5 * tipAngle) * arrowLength # reference size from arrowhead width
         tailSize = tailSize / 100.0 * refSize
     
@@ -349,7 +372,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
     
     if createLayer == True :
         
-        sourceDrawable = Gimp.Layer.new(monImage, "Arrows #0", monImage.get_width(), monImage.get_height(), 
+        sourceDrawable = Gimp.Layer.new(monImage, _("Arrow #1"), monImage.get_width(), monImage.get_height(), 
                                     monImage.get_base_type() * 2 + 1, 100.0, 28) # 28:normal
         monImage.insert_layer(sourceDrawable, None, 0)
         
@@ -357,7 +380,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         
         Gimp.context_pop()
         monImage.undo_group_end()
-        msg = "Procedure '{}' only works with one drawable.".format(procedure.get_name())
+        msg = _("Procedure '{}' only works with one drawable.").format(procedure.get_name())
         error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
         return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
         
@@ -382,7 +405,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         
         Gimp.context_pop()
         monImage.undo_group_end()
-        msg = "Procedure '{}' needs at least one path".format(procedure.get_name())
+        msg = _("Procedure '{}' needs at least one path").format(procedure.get_name())
         error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
         return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
     # end if
@@ -434,7 +457,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         if allStrokes == [] :
             Gimp.context_pop()
             monImage.undo_group_end()
-            msg = "Paths must have at least one stroke".format(procedure.get_name())
+            msg = _("Paths must have at least one stroke").format(procedure.get_name())
             error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
             return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
         # end if
@@ -447,7 +470,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         if len(flatPointsList) == 6 :
             Gimp.context_pop()
             monImage.undo_group_end()
-            msg = "The last point of this path is not connected".format(procedure.get_name())
+            msg = _("The last point of this path is not connected").format(procedure.get_name())
             error = GLib.Error.new_literal(Gimp.PlugIn.error_quark(), msg, 0)
             return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, error)
         # end if
@@ -586,7 +609,7 @@ def drawArrows(procedure, run_mode, monImage, drawables, config, data):
         # print(newFlatList) # debug
         
         # create path
-        newPath = Gimp.Path.new(monImage, "body path #1")
+        newPath = Gimp.Path.new(monImage, _("body path #1"))
         newPath.stroke_new_from_points(0, newFlatList, False)
         
         monImage.insert_path(newPath, None, 0)
@@ -762,7 +785,7 @@ def buildArrowhead(monImage, arrowStyle, axisLength, arrowLength, wingLength,
                     point2Y
                     ]
         
-        arrowPath = Gimp.Path.new(monImage, "arrow head #1")
+        arrowPath = Gimp.Path.new(monImage, _("arrow head #1"))
         arrowPath.stroke_new_from_points(0, arrowHeadPoints, True)
         
     elif arrowStyle == "simple" :
@@ -788,7 +811,7 @@ def buildArrowhead(monImage, arrowStyle, axisLength, arrowLength, wingLength,
                     point2Y
                     ]
         
-        arrowPath = Gimp.Path.new(monImage, "arrow head #1")
+        arrowPath = Gimp.Path.new(monImage, _("arrow head #1"))
         arrowPath.stroke_new_from_points(0, arrowHeadPoints, False)
         
     # end if
@@ -822,7 +845,7 @@ def buildCrossbar(monImage, oriX, oriY, tailAngle, tailSize) :
                     point2Y
                     ]
     
-    tailPath = Gimp.Path.new(monImage, "arrow tail #1")
+    tailPath = Gimp.Path.new(monImage, _("arrow tail #1"))
     tailPath.stroke_new_from_points(0, crossbarPoints, False)
     monImage.insert_path(tailPath, None, 0)
     
@@ -836,7 +859,7 @@ def buildBullet(monImage, oriX, oriY, tailSize) :
     
     radius = tailSize / 2.0
     
-    tailPath = Gimp.Path.new(monImage, "arrow tail #1")
+    tailPath = Gimp.Path.new(monImage, _("arrow tail #1"))
     tailPath.bezier_stroke_new_ellipse(oriX, oriY, radius, radius, 0.0)
     
     monImage.insert_path(tailPath, None, 0)
@@ -906,7 +929,7 @@ def buildFeather(monImage, tailWidth, anchorX, anchorY, tailAngle) :
                     point5Y
                     ]
                     
-    tailPath = Gimp.Path.new(monImage, "arrow tail #1")
+    tailPath = Gimp.Path.new(monImage, _("arrow tail #1"))
     tailPath.stroke_new_from_points(0, featherPoints, True)
     monImage.insert_path(tailPath, None, 0)
     
@@ -923,7 +946,7 @@ def buildSimpleFeather(monImage, tailWidth, anchorX, anchorY, tailLength, tailAn
     wingLength = tailWidth / math.sin(wingAngle)
     reduction = 0.1 * wingLength
     
-    tailPath = Gimp.Path.new(monImage, "arrow tail #1")
+    tailPath = Gimp.Path.new(monImage, _("arrow tail #1"))
     
     i = 0
     
