@@ -61,3 +61,6 @@ Unzip and copy the folder named "pl_stroke_arrows" into GIMP's "plug-ins" folder
 
 <img width="1322" height="752" alt="StrokeArrow03_inventory03" src="https://github.com/user-attachments/assets/16d86062-a8bc-4d02-ad8c-84648e8d2a4d" />
 
+## Translations:
+
+Currently only english (by default) and french are available. If you want to contribute to translations in other languages, you're welcome to open a ticket, and attach the .po file if possible.
